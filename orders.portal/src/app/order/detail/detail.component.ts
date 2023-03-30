@@ -14,6 +14,7 @@ import { ActivatedRoute, RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { NumberDirective } from 'src/app/shared';
+
 import { Customer, OrderDetails, OrderService, Product } from '../order.service';
 import { OrderProduct, Products } from './order-product.model';
 
@@ -41,27 +42,27 @@ import { OrderProduct, Products } from './order-product.model';
 })
 
 export class DetailComponent implements OnInit, OnDestroy {
-  displayedColumns: string[] = ['product', 'quantity', 'price', 'total price', 'actions'];
-  orderId!: number;
-  orderDetails!: Array<OrderDetails>;
-  dataSource!: MatTableDataSource<any>;
-  products!: Array<Product>;
-  customers!: Array<Customer>;
-  form!: FormGroup;
-  subScription!: Subscription;
+  public displayedColumns: string[] = ['product', 'quantity', 'price', 'total price', 'actions'];
+  private orderId!: number;
+  public orderDetails!: Array<OrderDetails>;
+  public dataSource!: MatTableDataSource<any>;
+  public products!: Array<Product>;
+  public customers!: Array<Customer>;
+  public form!: FormGroup;
+  private subScription!: Subscription;
   constructor(private route: ActivatedRoute, private service: OrderService, private fb: FormBuilder,
     private snackBar: MatSnackBar) {
 
   }
 
-  ngOnInit(): void {
-    this.route.paramMap.subscribe((params) => {
+  public ngOnInit(): void {
+    this.route.paramMap.subscribe((params: any) => {
       this.orderId = parseInt(params.get('id')!);
       this.getOrderDetails();
     });
   }
 
-  private intializeForm(): void {
+  private initializeForm(): void {
 
     this.form = this.fb.group({
       orderNumber: [this.orderDetails[0]?.order.orderNumber],
@@ -89,7 +90,7 @@ export class DetailComponent implements OnInit, OnDestroy {
       this.orderDetails = res;
       this.getProducts();
       this.getCustomers();
-      this.intializeForm();
+      this.initializeForm();
       this.add(res);
     })
   }
@@ -104,13 +105,13 @@ export class DetailComponent implements OnInit, OnDestroy {
     } else {
       const existingProducts = products.value as Array<Products>;
       if (existingProducts.find(x => x.productId === this.form.get('productId')?.value)) {
-        this.snackBar.open("Prodcut already exists", "", {
+        this.snackBar.open("Product already exists", "", {
           duration: 2000,
         });
       }
       else {
         products.push(this.newProduct(null));
-        this.snackBar.open("prodcut added successfully !", "", {
+        this.snackBar.open("product added successfully !", "", {
           duration: 2000,
         });
       }
@@ -120,7 +121,7 @@ export class DetailComponent implements OnInit, OnDestroy {
     this.clear();
   }
 
-  newProduct(detail: OrderDetails | null): FormGroup {
+  private newProduct(detail: OrderDetails | null): FormGroup {
     return this.fb.group({
       quantity: [detail?.quantity || this.form.get('quantity')?.value],
       productId: [detail?.productId || this.form.get('productId')?.value],
@@ -130,32 +131,32 @@ export class DetailComponent implements OnInit, OnDestroy {
 
   }
 
-  clear(): void {
+  private clear(): void {
     this.form.get('quantity')?.setValue(null);
     this.form.get('productId')?.setValue(null);
     this.form.get('price')?.setValue(null);
   }
 
 
-  getProducts(): void {
+  private getProducts(): void {
     this.service.getProducts().pipe(take(1)).subscribe(res => {
       this.products = res;
     })
   }
 
-  getCustomers(): void {
+  private getCustomers(): void {
     this.service.getCustomers().pipe(take(1)).subscribe(res => {
       this.customers = res;
     })
   }
 
-  onChangeQuantity(event: any) {
+  public onChangeQuantity(event: any) {
     const quantity = parseInt(event.target.value || 0);
     const price = this.products.find(x => x.id === parseInt(this.form.get('productId')?.value, 0))?.price;
     this.form.get('price')?.setValue(quantity * price!);
   }
 
-  saveOrderDetails(): void {
+  public saveOrderDetails(): void {
     if (this.form.valid) {
       const data = this.form.value as OrderProduct;
       this.subScription = this.service.saveOrderProducts(data).subscribe(res => {
@@ -166,12 +167,12 @@ export class DetailComponent implements OnInit, OnDestroy {
     }
   }
 
-  onProductSelectionChange(): void {
+  public onProductSelectionChange(): void {
     this.form.get('price')?.setValue(null);
     this.form.get('quantity')?.setValue(null);
   }
 
-  async ngOnDestroy() {
+  public ngOnDestroy() {
     if (this.subScription) {
       this.subScription.unsubscribe();
     }
